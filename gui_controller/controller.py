@@ -4,7 +4,7 @@ import sys
 from time import sleep
 
 class GUIController():
-    def __init__(self, master) -> None:
+    def __init__(self, master):
         self.master = master
     
 class GUIWindow(GUIController):
@@ -24,6 +24,7 @@ class GUIComponent(GUIController):
     def update_position(self, new_x, new_y):
         self.x = new_x
         self.y = new_y
+        self.show
 
     @property
     def show(self):
@@ -45,6 +46,7 @@ class GUILabel(GUIComponent):
         super().__init__(master, text, place_x, place_y)
         self.textVar = StringVar()
         self.instanceLabel = Label(master, textvariable=self.textVar)
+        self.instanceLabel.show
 
     def update_text(self, new_text): 
         self.textVar.set(f'{new_text}')
