@@ -10,9 +10,10 @@ class GUIController():
 class GUIWindow(GUIController):
     def __init__(self, master, name, width, height):
         super().__init__(master=master)
+        self.master = Tk()
         self.master.title( f'{name}' )
         self.master.geometry(f'{width}x{height}')
-        root = Tk()
+        return self.master
         
 class GUIComponent(GUIController):
     def __init__(self, master, text, place_x, place_y) -> None:
