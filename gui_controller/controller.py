@@ -1,7 +1,4 @@
 from tkinter import Tk, Label, Button, StringVar # changed the * to 'Tk, Label, Button, StringVar' because it may limit memory usage
-import tkinter.font
-import sys
-from time import sleep
 
 class GUIController():
     def __init__(self, master):
