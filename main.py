@@ -128,10 +128,8 @@ class tkThreadingTest():
                     self.logFile.write(' quantidade de informações ' + str(len(self.conectionElements)) + ' difere da quantidade esperada. \n\r')
                 self.logFile.close()
 
-    root = Tk()    
-    gui = UnitTestGUI( root )
-    root.protocol( "WM_DELETE_WINDOW", gui.close )
-    root.mainloop()
-
 if __name__ == "__main__": 
-    window = tkThreadingTest()
+    root = Tk()
+    window = tkThreadingTest(root)
+    root.protocol("WM_DELETE_WINDOW", window.close)
+    root.mainloop()
