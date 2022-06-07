@@ -1,17 +1,17 @@
 """
 Main part of the process
 """
-
+from tkinter import Tk
 from process_controller import BackgroundTask
 from gui_controller import GUILabel, GUIButton, GUIWindow
 
 class tkThreadingTest():
 
     class UnitTestGUI:
-        
+        env_choices = ['ruindows', 'unix']
         def __init__( self, master ):
             self.window = GUIWindow(master, "CarManGUI", 420, 320)
-
+            self.env = self.env_choices[0]
             ##file related
             self.saveFile = False # variável que vai indicar se tem que gravar o arquivo ou não quando executar a thread da serial
             self.logFile = None 
@@ -66,7 +66,11 @@ class tkThreadingTest():
         def serialStartConection ( self, isRunningFunc = None ) : #using the long process as the serial thread handler
             self.onSerialThreadUpdate ( "Starting Serial connection..." )
             try :
-                self.ser = serial.Serial('/dev/ttyACM0', 9600) #('COM4', 9600)('/dev/ttyACM0', 9600) 
+                if self.env == self.env_choices[0]:    
+                    self.ser = serial.Serial('COM4', 9600) 
+                if self.env == self.env_choices[1]:
+                    self.ser = serial.Serial('/dev/ttyACM0', 9600)
+                    
                 if(self.ser.isOpen() == False):
                     self.ser.open()
                     self.onSerialThreadUpdate ( "Conected to Arduino..." )     
