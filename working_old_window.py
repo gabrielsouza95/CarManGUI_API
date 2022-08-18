@@ -1,30 +1,110 @@
-"""
-Main part of the process
-"""
-from tkinter import Tk
-from process_controller import BackgroundTask
-from gui_controller import GUILabel, GUIButton, GUIWindow
+# Related to threading tool buildup
+import threading
 
-class tkThreadingTest():
+class TkRepeatingTask():
+
+    def __init__( self, tkRoot, taskFuncPointer, freqencyMillis ):
+        self.__tk_   = tkRoot
+        self.__func_ = taskFuncPointer        
+        self.__freq_ = freqencyMillis
+        self.__isRunning_ = False
+
+    def isRunning( self ) : return self.__isRunning_ 
+
+    def start( self ) : 
+        self.__isRunning_ = True
+        self.__onTimer()
+
+    def stop( self ) : self.__isRunning_ = False
+
+    def __onTimer( self ): 
+        if self.__isRunning_ :
+            self.__func_() 
+            self.__tk_.after( self.__freq_, self.__onTimer )
+
+class BackgroundTask():
+
+    def __init__( self, taskFuncPointer ):
+        self.__taskFuncPointer_ = taskFuncPointer
+        self.__workerThread_ = None
+        self.__isRunning_ = False
+
+    def taskFuncPointer( self ) : return self.__taskFuncPointer_
+
+    def isRunning( self ) : 
+        return self.__isRunning_ and self.__workerThread_.isAlive()
+
+    def start( self ): 
+        if not self.__isRunning_ :
+            self.__isRunning_ = True
+            self.__workerThread_ = self.WorkerThread( self )
+            self.__workerThread_.start()
+
+    def stop( self ) : self.__isRunning_ = False
+
+    class WorkerThread( threading.Thread ):
+        def __init__( self, bgTask ):      
+            threading.Thread.__init__( self )
+            self.__bgTask_ = bgTask
+
+        def run( self ):
+            try :
+                self.__bgTask_.taskFuncPointer()( self.__bgTask_.isRunning )
+            except Exception as e: 
+                print (e)
+            self.__bgTask_.stop()
+# Related to threading tool buildup
+
+def tkThreadingTest():
+    from tkinter import Tk, Label, Button, StringVar # changed the * to 'Tk, Label, Button, StringVar' because it may limit memory usage
+    import tkinter.font
+    import sys
+    import requests
+    from time import sleep
+    import pyserial
+    
 
     class UnitTestGUI:
-        env_choices = ['ruindows', 'unix']
         
         def __init__( self, master ):
-            self.window = GUIWindow(master, "CarManGUI", 420, 320)
-            self.env = self.env_choices[0]
+            self.master = master
+            self.master.title( "CarManGUI" )
+            self.master.geometry('420x320')
+            
+            ##button position related
+            self.buttonYLine = 85
+
+            ##serial releated
+            self.runComunication = 0
+            #variable related to serial port
+            self.ser = None # = serial.Serial('COM4', 9600)#('/dev/ttyACM0', 9600) segundo valor é a iniciação da comunicação serial no raspberry        
+
             ##file related
             self.saveFile = False # variável que vai indicar se tem que gravar o arquivo ou não quando executar a thread da serial
             self.logFile = None 
 
-            self.serialButton = GUIButton(master, 'Conect Serial', self.onSerialClicked, 10, 84)
-            self.arduinoButton = GUIButton(master, 'Conect Arduino', self.onConectedClicked, 90, 84)
-            self.recButton = GUIButton(master, 'Rec', self.onRecClicked, 185, 84)
-            self.cancelButton = GUIButton(master, 'Stop', self.onStopClicked, 240, 84)
-            
-            self.infoLabel = GUILabel(master, 'Waiting connection...', 20, 20)
+            self.serialButton = Button( 
+                self.master, text="Conect Serial", command=self.onSerialClicked )
+            self.serialButton.place(x = 10, y = self.buttonYLine)
 
-            self.bgTaskSerial = BackgroundTask( self.serialStartConection )
+            self.arduinoButton = Button( 
+                self.master, text="Conect Arduino", command=self.onConectedClicked )
+            self.arduinoButton.place(x = 90, y = self.buttonYLine)
+
+            self.recButton = Button( 
+                self.master, text="Rec", command=self.onRecClicked )
+            self.recButton.place(x = 185, y = self.buttonYLine)
+
+            self.cancelButton = Button( 
+                self.master, text="Stop", command=self.onStopClicked )
+            self.cancelButton.place(x = 240, y = self.buttonYLine)
+
+            self.receviedInfo = StringVar()
+            self.infoLabel = Label( master, textvariable=self.receviedInfo) 
+            self.receviedInfo.set("Waiting connection...")
+            self.infoLabel.place( x = 20, y = 20)
+
+            self.bgTaskSerial = BackgroundTask( self.serialStartConection ) #BackgroundTask( self.myLongProcess )
             self.bgTaskArduino = BackgroundTask( self.serialConectionRead )
             self.bgTaskRecArduino = BackgroundTask( self.serialArduinoRec )
             
@@ -64,14 +144,10 @@ class tkThreadingTest():
             try: self.bgTaskRecArduino.stop()
             except: pass 
 
-        def serialStartConection ( self, isRunningFunc = None ) : #using the long process as the serial thread handler
+        def serialStartConection ( self, isRunningFunc = None ) : #myLongProcess( self, isRunningFunc=None ) : using the long process as the serial thread handler
             self.onSerialThreadUpdate ( "Starting Serial connection..." )
             try :
-                if self.env == self.env_choices[0]:    
-                    self.ser = serial.Serial('COM4', 9600) 
-                if self.env == self.env_choices[1]:
-                    self.ser = serial.Serial('/dev/ttyACM0', 9600)
-
+                self.ser = pyserial.Serial('/dev/ttyACM0', 9600) #('COM4', 9600)('/dev/ttyACM0', 9600) 
                 if(self.ser.isOpen() == False):
                     self.ser.open()
                     self.onSerialThreadUpdate ( "Conected to Arduino..." )     
@@ -104,10 +180,11 @@ class tkThreadingTest():
                     self.ser.write(str.encode("2#"))  
             except : pass        
 
-        def onSerialThreadUpdate( self, status ) :
-            print( str(status) )
-            self.infoLabel.update_text(str(status))
-            
+        def onSerialThreadUpdate( self, status ) : #onMyLongProcessUpdate( self, status ) :
+            print( str(status) ) #print ("Process Update: %s" % (status))
+            self.receviedInfo.set( str(status) ) #self.statusLabelVar.set( str.encode(status) )
+            self.infoLabel.place( x = 20, y = 20)
+
         def onThreadUpdateCheckFileWrite( self, status ) :
             print( "Checking if write file" )
             self.firstElement = 0
@@ -133,7 +210,10 @@ class tkThreadingTest():
                     self.logFile.write(' quantidade de informações ' + str(len(self.conectionElements)) + ' difere da quantidade esperada. \n\r')
                 self.logFile.close()
 
-if __name__ == "__main__": 
-    root = Tk()
-    root.protocol("WM_DELETE_WINDOW", tkThreadingTest().UnitTestGUI(root).close)
+    root = Tk()    
+    gui = UnitTestGUI( root )
+    root.protocol( "WM_DELETE_WINDOW", gui.close )
     root.mainloop()
+
+if __name__ == "__main__": 
+    tkThreadingTest()

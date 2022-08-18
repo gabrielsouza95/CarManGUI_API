@@ -1,4 +1,3 @@
 [packages]
 requests = "*"
-threading = "*"
-serial = "*"
+pyserial = "*"

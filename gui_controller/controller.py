@@ -1,20 +1,20 @@
 from tkinter import Tk, Label, Button, StringVar # changed the * to 'Tk, Label, Button, StringVar' because it may limit memory usage
 
-class GUIController():
-    def __init__(self, master):
-        self.master = master
+class GUIController(Tk):
+    def __init__(self):
+        super.__init__()
     
 class GUIWindow(GUIController):
     def __init__(self, master, name, width, height):
-        super().__init__(master=master)
+        super().__init__()
         self.master = Tk()
         self.master.title( f'{name}' )
         self.master.geometry(f'{width}x{height}')
-        return self.master
         
 class GUIComponent(GUIController):
     def __init__(self, master, text, place_x, place_y) -> None:
-        super().__init__(master=master)
+        super().__init__()
+        self.master = master
         self.text = text
         self.x = place_x
         self.y = place_y
