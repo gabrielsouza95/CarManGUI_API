@@ -1,60 +1,3 @@
-# Related to threading tool buildup
-import threading
-
-class TkRepeatingTask():
-
-    def __init__(self, tkRoot, taskFuncPointer, freqencyMillis):
-        self.__tk_  =tkRoot
-        self.__func_=taskFuncPointer        
-        self.__freq_=freqencyMillis
-        self.__isRunning_=False
-
-    def isRunning(self): return self.__isRunning_ 
-
-    def start(self): 
-        self.__isRunning_=True
-        self.__onTimer()
-
-    def stop(self): self.__isRunning_=False
-
-    def __onTimer(self): 
-        if self.__isRunning_:
-            self.__func_() 
-            self.__tk_.after(self.__freq_, self.__onTimer)
-
-class BackgroundTask():
-
-    def __init__(self, taskFuncPointer):
-        self.__taskFuncPointer_=taskFuncPointer
-        self.__workerThread_=None
-        self.__isRunning_=False
-
-    def taskFuncPointer(self): return self.__taskFuncPointer_
-
-    def isRunning(self): 
-        return self.__isRunning_ and self.__workerThread_.isAlive()
-
-    def start(self): 
-        if not self.__isRunning_:
-            self.__isRunning_=True
-            self.__workerThread_=self.WorkerThread(self)
-            self.__workerThread_.start()
-
-    def stop(self): self.__isRunning_=False
-
-    class WorkerThread(threading.Thread):
-        def __init__(self, bgTask):      
-            threading.Thread.__init__(self)
-            self.__bgTask_=bgTask
-
-        def run(self):
-            try:
-                self.__bgTask_.taskFuncPointer()(self.__bgTask_.isRunning)
-            except Exception as e: 
-                print(e)
-            self.__bgTask_.stop()
-# Related to threading tool buildup
-
 def tkThreadingTest():
     from tkinter import Tk, Label, Button, StringVar # changed the * to 'Tk, Label, Button, StringVar' because it may limit memory usage
     import tkinter.font
@@ -62,7 +5,7 @@ def tkThreadingTest():
     import requests
     from time import sleep
     from arduinoserial import SerialPort as serial
-    
+    from working_old_baground_task_controller import BackgroundTask
 
     class UnitTestGUI:
         
@@ -82,36 +25,47 @@ def tkThreadingTest():
             ##file related
             self.saveFile=False # variável que vai indicar se tem que gravar o arquivo ou não quando executar a thread da serial
             self.logFile=None 
+            self.initial_offset=10
+            self.positional_offset=self.initial_offset
 
             self.serialButton=Button(
                 self.master, text='Conect Serial', command=self.onSerialClicked 
-           )
+            )
             self.serialButton.place(
-                x=10, 
+                x=self.positional_offset, 
                 y=self.buttonYLine
             )
+            self.master.update()
+            self.serial_button_width = self.serialButton.winfo_width()
+            self.positional_offset += self.serial_button_width
 
             self.arduinoButton=Button(
                 self.master, text='Conect Arduino', command=self.onConectedClicked 
             )
             self.arduinoButton.place(
-                x=90, 
+                x=self.positional_offset, 
                 y=self.buttonYLine
             )
+            self.master.update()
+            self.arduino_button_width = self.arduinoButton.winfo_width()
+            self.positional_offset += self.arduino_button_width
 
             self.recButton=Button(
                 self.master, text='Rec', command=self.onRecClicked 
             )
             self.recButton.place(
-                x=185, 
+                x=self.positional_offset, 
                 y=self.buttonYLine
             )
+            self.master.update()
+            self.rec_button_width = self.recButton.winfo_width()
+            self.positional_offset += self.rec_button_width
 
             self.cancelButton=Button(
                 self.master, text='Stop', command=self.onStopClicked 
             )
             self.cancelButton.place(
-                x=240, 
+                x=self.positional_offset, 
                 y=self.buttonYLine
             )
 
