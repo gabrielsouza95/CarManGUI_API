@@ -132,6 +132,8 @@ class tkThreadingTest():
                 if not len(self.conectionElements) == self.amountOfArduinoData :
                     self.logFile.write(' quantidade de informações ' + str(len(self.conectionElements)) + ' difere da quantidade esperada. \n\r')
                 self.logFile.close()
+                
+                #DIROSE PASSOU POR AKUA
 
 if __name__ == "__main__": 
     root = Tk()
